@@ -1,4 +1,4 @@
-# Antenna Extension v0.9.0
+# Antenna Extension v0.10.0
 
 The `antenna` namespace extension defines static antenna parameters extending `global` and dynamic antenna parameters extending `annotations`.
 
@@ -33,5 +33,7 @@ the `annotations` object:
 |name|required|type|unit|description|
 |----|--------------|-------|-------|-----------|
 |`azimuth_angle`|false|float|degrees|Angle of main beam in azimuthal plane from North.|
+|`azimuth_error`|false|float|degrees|Uncertainty expressed as +/- degrees in the azimuth value.|
 |`elevation_angle`|false|float|degrees|Angle of main beam in elevation plane from horizontal.|
+|`elevation_error`|false|float|degrees|Uncertainty expressed as +/- degrees in the elevation value.|
 |`polarization`|false|float|string|E.g. `"vertical"`, `"horizontal"`, `"slant-45"`, `"left-hand circular"`, `"right-hand circular"`.|

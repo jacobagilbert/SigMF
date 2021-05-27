@@ -1,4 +1,5 @@
-# Capture Details Extension v1.0.0
+# Capture Details Extension v1.1.0
+
 The `capture_details` namespace extension defines static IQ capture parameters extending `captures` and dynamic IQ capture parameters extending `annotations`.
 
 ## Global
@@ -28,6 +29,7 @@ The following names are specified in the `capture_details` namespace and should 
 The following names are specified in the `capture_details` namespace and should be used in the `annotations` object:
 
 |name|required|type|unit|description|
-|----|--------------|-------|-------|-----------|
+|---|---|---|---|---|
+|`emitter_id`|false|string|N/A|A unique identifier for the emitter responsible for the signal.|
 |`SNRdB`|true|float|dB|Root mean square (RMS) calculation of signal to noise ratio (SNR). The calculation is over windows of known signal and no known signal.|
 |`signal_reference_number`|true|string|N/A|Sequential reference labels for the elements that form the sequence of signals identified in a SigMF dataset file. The format of the string is the filename followed by an index that increases with each decoded signal.  An example is a recording dataset file named `N.sigmf-data` would have signal numbers starting with `N-1`, `N-2`, `N-3`...|
