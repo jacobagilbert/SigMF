@@ -3,11 +3,7 @@ The `wifi`namespace extension defines dynamic Wi-Fi burst parameters extending `
 
 ## Global
 
-The following names are specified in the `wifi` namespace and should be used in the `global` object:
-
-|name|required|type|unit|description|
-|----|--------------|-------|-------|-----------|
-|`version`|true|string|N/A|The version of the `wifi` extension used to create the metadata file.|
+The `wifi` namespace does not extend the `global` object:
 
 ## Annotations
 

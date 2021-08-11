@@ -3,11 +3,7 @@ The `capture_details` namespace extension defines static IQ capture parameters e
 
 ## Global
 
-The following names are specified in the `capture_details` namespace and should be used in the `global` object:
-
-|name|required|type|unit|description|
-|----|--------------|-------|-------|-----------|
-|`version`|true|string|N/A|The version of the `capture_details` extension used to create the metadata file.|
+The `capture_details` namespace does not extend the `global` object:
 
 ## Captures
 

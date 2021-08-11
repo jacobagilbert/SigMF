@@ -275,8 +275,8 @@ namespaces may be defined by the user as needed.
 This is a list of the canonical extension namespaces defined by SigMF:
 
 * `antenna` - Used to describe the antenna(s) used to for the recording.
-* `modulation` - Defines how to describe modulations used in wireless communications systems.
-* `volatile` - Allows for continuously time-varying fields, such as a moving receiver or rotating antenna.
+* `capture_details` - Used to describe features of IQ captures and annotations.
+* `signal` - Used to describe modulated signals used in wireless communications systems.
 
 #### Global Object
 
@@ -336,9 +336,9 @@ names defined in the `core` namespace:
 
 |name|required|type|description|
 |----|--------------|-------|-----------|
-|`ext_name`|true|string|The name of the SigMF extension namespace.|
-|`ext_version`|true|string|The version of the extension namespace specification used.|
-|`ext_optional`|true|boolean|If this field is `true`, the extension is required to parse this recording.|
+|`name`|true|string|The name of the SigMF extension namespace.|
+|`version`|true|string|The version of the extension namespace specification used.|
+|`optional`|true|boolean|If this field is `true`, the extension is required to parse this recording.|
 
 In the example below, `extension-01` is used, but not required, and 
 `version 1.2.3` of `extension-02` *is* required.
@@ -348,14 +348,14 @@ In the example below, `extension-01` is used, but not required, and
     ...
     "core:extensions" : [
         {
-        "core:ext_name": "extension-01",
-        "core:ext_version": "v0.0.5",
-        "core:ext_optional": true
+        "name": "extension-01",
+        "version": "v0.0.5",
+        "optional": true
         },
         {
-        "core:ext_name": "extension-02",
-        "core:ext_version": "v1.2.3",
-        "core:ext_optional": false
+        "name": "extension-02",
+        "version": "v1.2.3",
+        "optional": false
         }
     ]
     ...

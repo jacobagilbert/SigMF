@@ -2,11 +2,7 @@
 The Automatic Dependent Surveillance-Broadcast (`adsb`) namespace extension defines dynamic properties of ADS-B signals extending `annotations`.
 
 ## Global
-The following names are specified in the `adsb` namespace and should be used in the `global` object:
-
-|name|required|type|unit|description|
-|----|--------------|-------|-------|-----------|
-|`version`|true|string|N/A|The version of the `adsb` extension used to create the metadata file.|
+The `adsb` namespace does not extend the `global` object:
 
 ## Annotations
 The following names are specified in the `adsb` namespace and should be used in the `annotations` object:

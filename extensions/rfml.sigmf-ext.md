@@ -8,8 +8,6 @@ The following names are specified in the `rfml` namespace and should be used in 
 |name|required|type|unit|description|
 |----|--------------|-------|-------|-----------|
 |`label_hierarchy`|true|array|N/A|Defines hierarchy of the fields in the label array.|
-|`version`|true|string|N/A|The version of the `rfml` extension used to create the metadata file.|
-
 
 ## Annotations
 

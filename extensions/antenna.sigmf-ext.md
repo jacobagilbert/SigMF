@@ -23,7 +23,6 @@ the `global` object:
 |`cable_loss`|false|float|dB|Cable loss for cable connecting antenna and preselector.|
 |`steerable`|false|boolean|N/A|Defines if the antenna is steerable or not.|
 |`mobile`|false|boolean|N/A|Defines if the antenna is mobile or not.|
-|`version`|true|string|N/A|The version of the `antenna` extension used to create the metadata file.|
 
 ## Annotations
 
