@@ -28,7 +28,7 @@ import tempfile
 from . import __version__  #, schema, sigmf_hash, validate
 from .sigmffile import SigMFFile
 from .archive import SigMFArchive, SIGMF_DATASET_EXT, SIGMF_METADATA_EXT, SIGMF_ARCHIVE_EXT
-from .utils import dict_merge, insert_sorted_dict_list
+from .utils import dict_merge
 from .error import SigMFFileError, SigMFAccessError
 
 

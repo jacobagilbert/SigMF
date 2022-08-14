@@ -31,7 +31,7 @@ import numpy as np
 
 from . import __version__, schema, sigmf_hash, validate
 from .archive import SigMFArchive, SIGMF_DATASET_EXT, SIGMF_METADATA_EXT, SIGMF_ARCHIVE_EXT
-from .utils import dict_merge, insert_sorted_dict_list
+from .utils import dict_merge
 from .error import SigMFFileError, SigMFAccessError
 
 class SigMFFile():
@@ -111,9 +111,9 @@ class SigMFFile():
         self.is_complex_data = False  # numpy.iscomplexobj(self._memmap) is not adequate for fixed-point complex case
 
         if metadata is None:
-            self._metadata = get_default_metadata(self.get_schema())
-            if not self._metadata[self.GLOBAL_KEY][self.VERSION_KEY]:
-                self._metadata[self.GLOBAL_KEY][self.VERSION_KEY] = __version__
+            self._metadata = {self.GLOBAL_KEY:{}, self.CAPTURE_KEY:[], self.ANNOTATION_KEY:[]}
+            self._metadata[self.GLOBAL_KEY][self.NUM_CHANNELS_KEY] = 1
+            self._metadata[self.GLOBAL_KEY][self.VERSION_KEY] = __version__
         elif isinstance(metadata, dict):
             self._metadata = metadata
         else:
@@ -121,7 +121,7 @@ class SigMFFile():
         if global_info is not None:
             self.set_global_info(global_info)
         if data_file is not None:
-            self.set_data_file(data_file, skip_checksum, map_readonly=map_readonly)
+            self.set_data_file(data_file, skip_checksum=skip_checksum, map_readonly=map_readonly)
 
     def __str__(self):
         return self.dumps()
@@ -194,17 +194,6 @@ class SigMFFile():
         # if we get here, the file exists and is conforming
         return True
 
-    def _validate_dict_in_section(self, entries, section_key):
-        """
-        Checks a dictionary for validity.
-        Throws if not.
-        """
-        schema_section = self.get_schema()[section_key]
-        for key, value in entries.items():
-            validate.validate_key_throw(
-                value, schema_section.get(key, {}), schema_section, key
-            )
-
     def get_schema(self):
         """
         Return a schema object valid for the current metadata
@@ -220,7 +209,6 @@ class SigMFFile():
         """
         Overwrite the global info with a new dictionary.
         """
-        self._validate_dict_in_section(new_global, self.GLOBAL_KEY)
         self._metadata[self.GLOBAL_KEY] = new_global.copy()
 
     def get_global_info(self):
@@ -234,19 +222,9 @@ class SigMFFile():
 
     def set_global_field(self, key, value):
         """
-        Inserts a value into the global fields.
-
-        Will throw a ValueError if the key/value pair is invalid.
+        Inserts a value into the global field.
         """
-        schema_section = self.get_schema()[self.GLOBAL_KEY].get('keys', {})
-        validate.validate_key_throw(
-            value,
-            schema_section.get(key, {}),
-            self.GLOBAL_KEY,
-            key
-        )
         self._metadata[self.GLOBAL_KEY][key] = value
-        return value
 
     def get_global_field(self, key, default=None):
         """
@@ -258,17 +236,24 @@ class SigMFFile():
         """
         Insert capture info for sample starting at start_index.
         If there is already capture info for this index, metadata will be merged
-        with the existing metadata, overwriting keys if they were previously
-        set.
+        with the existing metadata, overwriting keys if they were previously set.
         """
         assert start_index >= self._get_start_offset()
-        metadata = metadata or {}
-        self._validate_dict_in_section(metadata, self.CAPTURE_KEY)
-        metadata[self.START_INDEX_KEY] = start_index
-        self._metadata[self.CAPTURE_KEY] = insert_sorted_dict_list(
-            self._metadata.get(self.CAPTURE_KEY, []),
-            metadata,
-            self.START_INDEX_KEY,
+        capture_list = self._metadata[self.CAPTURE_KEY]
+        new_capture = metadata or {}
+        new_capture[self.START_INDEX_KEY] = start_index
+        # merge if capture exists
+        merged = False
+        for existing_capture in self._metadata[self.CAPTURE_KEY]:
+            if existing_capture[self.START_INDEX_KEY] == start_index:
+                existing_capture = dict_merge(existing_capture, new_capture)
+                merged = True
+        if not merged:
+            capture_list += [new_capture]
+        # sort captures by start_index
+        self._metadata[self.CAPTURE_KEY] = sorted(
+            capture_list,
+            key=lambda item: item[self.START_INDEX_KEY]
         )
 
     def get_captures(self):
@@ -331,19 +316,19 @@ class SigMFFile():
 
     def add_annotation(self, start_index, length, metadata=None):
         """
-        Insert annotation
+        Insert annotation at start_index with length.
         """
         assert start_index >= self._get_start_offset()
         assert length >= 1
-        metadata = metadata or {}
-        metadata[self.START_INDEX_KEY] = start_index
-        metadata[self.LENGTH_INDEX_KEY] = length
-        self._validate_dict_in_section(metadata, self.ANNOTATION_KEY)
-        self._metadata[self.ANNOTATION_KEY] = insert_sorted_dict_list(
-            self._metadata.get(self.ANNOTATION_KEY, []),
-            metadata,
-            self.START_INDEX_KEY,
-            force_insertion=True
+        new_annot = metadata or {}
+        new_annot[self.START_INDEX_KEY] = start_index
+        new_annot[self.LENGTH_INDEX_KEY] = length
+
+        self._metadata[self.ANNOTATION_KEY] += [new_annot]
+        # sort annotations by start_index
+        self._metadata[self.ANNOTATION_KEY] = sorted(
+            self._metadata[self.ANNOTATION_KEY],
+            key=lambda item: item[self.START_INDEX_KEY]
         )
 
     def get_annotations(self, index=None):
@@ -417,7 +402,8 @@ class SigMFFile():
             if old_hash != new_hash:
                 raise SigMFFileError('Calculated file hash does not match associated metadata.')
 
-        return self.set_global_field(self.HASH_KEY, new_hash)
+        self.set_global_field(self.HASH_KEY, new_hash)
+        return new_hash
 
     def set_data_file(self, data_file=None, data_buffer=None, skip_checksum=False, offset=0, size_bytes=None, map_readonly=True):
         """
@@ -470,13 +456,10 @@ class SigMFFile():
 
     def validate(self):
         """
-        Return True if the metadata is valid.
+        Check schema and throw error if issue.
         """
-        schema_version = self.get_global_field(self.VERSION_KEY)
-        return validate.validate(
-            self._metadata,
-            schema.get_schema(schema_version),
-        )
+        version = self.get_global_field(self.VERSION_KEY)
+        validate.validate(self._metadata, self.get_schema())
 
     def ordered_metadata(self):
         '''
@@ -548,7 +531,7 @@ class SigMFFile():
         archive = SigMFArchive(self, name, fileobj)
         return archive.path
 
-    def tofile(self, file_path, pretty=True, toarchive=False):
+    def tofile(self, file_path, pretty=True, toarchive=False, skip_validate=False):
         '''
         Write metadata file or full archive containing metadata & dataset.
 
@@ -562,13 +545,14 @@ class SigMFFile():
             If True will write both dataset & metadata into SigMF archive format as a single `tar` file.
             If False will only write metadata to `sigmf-meta`.
         '''
+        if not skip_validate:
+            self.validate()
         fns = get_sigmf_filenames(file_path)
         if toarchive:
             self.archive(fns['archive_fn'])
         else:
             with open(fns['meta_fn'], 'w') as fp:
                 self.dump(fp, pretty=pretty)
-                fp.write('\n')  # text files should end in carriage return
 
     def read_samples_in_capture(self, index=0, autoscale=True):
         '''
@@ -850,26 +834,3 @@ def get_sigmf_filenames(filename):
     """
     filename = path.splitext(filename)[0]
     return {'data_fn': filename+SIGMF_DATASET_EXT, 'meta_fn': filename+SIGMF_METADATA_EXT, 'archive_fn': filename+SIGMF_ARCHIVE_EXT}
-
-
-def get_default_metadata(schema):
-    """Return the minimal metadata that will pass the validator."""
-    def get_default_dict(keys_dict):
-        " Return a dict with all default values from keys_dict "
-        return {
-            key: desc.get("default")
-            for key, desc in keys_dict.items()
-            if "default" in desc
-        }
-
-    def default_category_data(cat_type, defaults):
-        " Return a valid data type for a category "
-        return {
-            'dict': lambda x: x,
-            'dict_list': lambda x: [x] if x else [],
-        }[cat_type](defaults)
-
-    return {
-        category: default_category_data(desc["type"], get_default_dict(desc["keys"]))
-        for category, desc in schema.items()
-    }
