@@ -28,7 +28,7 @@ The following fields are added to the `global` object:
 
 |name|required|type|description|
 |----|--------|----|-----------|
-|`type`|true|string|Type of origin information. Ex.: `blob`,`local`,`memmory`|
+|`type`|true|string|Type of origin information. Ex.: `blob`,`local`,`memory`|
 |`account`|false|string|Account name or identifier|
 |`container`|false|string|Container or repository name|
 |`file_path`|true|string|Path to the file within the container|
@@ -52,7 +52,7 @@ The following fields are added to each annotation in the `annotations` array:
 
 Here are some examples of using the `traceability` extension:
 
-- Simple traceability information:
+Simple traceability information for last modified and last reviewed:
 
 ```json
 {
@@ -64,18 +64,15 @@ Here are some examples of using the `traceability` extension:
     "traceability:last_reviewed": {
       "author": "ben.doe@example.com",
       "time": "2023-05-31T12:30:00Z"
-    },
-    "traceability:revision": 1,
-    "traceability:origin": {
-      "file_path": "/data/signal_data.bin"
     }
   },
+  "captures": [
+    {
+      "core:sample_start": 0
+    }
+  ],
   "annotations": [
     {
-      "traceability:last_modified": {
-        "author": "jane.doe@example.com",
-        "time": "2023-05-30T10:30:00Z"
-      },
       "core:label": "Signal of interest",
       "core:sample_start": 100,
       "core:sample_count": 500
@@ -84,7 +81,34 @@ Here are some examples of using the `traceability` extension:
 }
 ```
 
-- Multiple annotations with traceability information:
+This example has been modified more recently than it has been reivewed and
+possibly should be flagged for additional review:
+
+```json
+{
+  "global": {
+    "traceability:last_modified": {
+      "time": "2023-06-02T09:00:00Z"
+    },
+    "traceability:last_reviewed": {
+      "time": "2023-05-31T12:30:00Z"
+    }
+  },
+  "captures": [
+    {
+      "core:sample_start": 0
+    }
+  ],
+  "annotations": [
+    {
+      "core:label": "Signal of interest",
+      "core:sample_start": 100,
+      "core:sample_count": 500
+    }
+  ],
+}
+
+Multiple annotations with individual traceability information:
 
 ```json
 {
@@ -93,15 +117,16 @@ Here are some examples of using the `traceability` extension:
       "author": "john.doe@example.com",
       "time": "2023-05-31T12:00:00Z"
     },
-    "traceability:last_reviewed": {
-      "author": "ben.doe@example.com",
-      "time": "2023-05-31T12:30:00Z"
-    },
     "traceability:revision": 1,
     "traceability:origin": {
       "file_path": "/data/signal_data.bin"
     }
   },
+  "captures": [
+    {
+      "core:sample_start": 0
+    }
+  ],
   "annotations": [
     {
       "traceability:last_modified": {
@@ -129,7 +154,7 @@ Here are some examples of using the `traceability` extension:
 }
 ```
 
-- Traceability information with additional origin details:
+Traceability information with additional origin details:
 
 ```json
 {
@@ -145,6 +170,11 @@ Here are some examples of using the `traceability` extension:
       "file_path": "/data/signal_data.bin"
     }
   },
+  "captures": [
+    {
+      "core:sample_start": 0
+    }
+  ],
   "annotations": [
     {
       "traceability:last_modified": {
@@ -159,7 +189,7 @@ Here are some examples of using the `traceability` extension:
 }
 ```
 
-- Multiple modifications of the metadata:
+Multiple modifications of the metadata:
 
 ```json
 {
@@ -168,11 +198,16 @@ Here are some examples of using the `traceability` extension:
       "author": "john.doe@example.com",
       "time": "2023-05-31T12:00:00Z"
     },
-    "traceability:revision": 2,
+    "traceability:revision": 4,
     "traceability:origin": {
       "file_path": "/data/signal_data.bin"
     }
   },
+  "captures": [
+    {
+      "core:sample_start": 0
+    }
+  ],
   "annotations": [
     {
       "traceability:last_modified": {
